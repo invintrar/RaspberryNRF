@@ -21,8 +21,9 @@ void interrupcion(void);
 
 int main(){
 	unsigned char i;
-	uint8_t tx_addr[5] = {0x04, 0xAD, 0x45, 0x98, 0x51};
-	uint8_t rx_addr[5] = {0x44, 0x88, 0xBA, 0xBE, 0x42};
+	uint8_t tx_addr[5] = {0x78, 0x78, 0x78, 0x78, 0x78
+	};
+	uint8_t rx_addr[5] = {0x78, 0x78, 0x78, 0x78, 0x78};
 
 	bandera = 0;
 
@@ -32,6 +33,7 @@ int main(){
 	Led_SetOutput();
 	wiringPiISR(RF_IRQ , INT_EDGE_FALLING, interrupcion);
 
+	Led_SetHigh();
 	to_send.op1 = 1;
 	to_send.op2 = 1;
 
@@ -49,7 +51,6 @@ int main(){
 		RF24L01_set_mode_TX();
 		RF24L01_write_payload(buffer_to_send, 32);
 		//Wait for the buffer to be sent
-		Led_SetHigh();
 		printf("Wait for the buffer to be sent\n...");
 		while(!mutex);
 		if(mutex != 1)

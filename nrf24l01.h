@@ -61,6 +61,10 @@
 #define RF24L01_command_NOP                   0xFF
 
 
+/* Variables */
+
+uint8_t aux[2];
+
 typedef struct _RF24L01_reg_CONFIG_content {
   uint8_t PRIM_RX      :1;
   uint8_t PWR_UP       :1;

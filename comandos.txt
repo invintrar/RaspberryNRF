@@ -1,3 +1,4 @@
+			Para usar editor nao GNU
 rm eliminar archivo o directorio
 mv mover archivo o renombrar
 ls lista directorio actual
@@ -11,7 +12,8 @@ Para Editar con nano y ver en que linea me ecuentro se utiliza:
 	nano nombreDelArchivo.c/h -c
 Para ver numero de linea en nano
 	Alt + Shift + 3.
-Para compilar en C:
+
+					Para compilar en C:
 	gcc -o nombreSalida nombrePrograma.c -lwiringPi
 
 
