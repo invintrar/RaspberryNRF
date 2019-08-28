@@ -1,3 +1,4 @@
+/* Trabajo Compartido con Jose */
 #include "main.h"
 
 uint8_t mutex;
