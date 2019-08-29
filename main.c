@@ -21,8 +21,7 @@ void interrupcion(void);
 
 int main(){
 	unsigned char i;
-	uint8_t tx_addr[5] = {0x78, 0x78, 0x78, 0x78, 0x78
-	};
+	uint8_t tx_addr[5] = {0x87, 0x87, 0x87, 0x87, 0x87};
 	uint8_t rx_addr[5] = {0x78, 0x78, 0x78, 0x78, 0x78};
 
 	bandera = 0;
@@ -44,7 +43,6 @@ int main(){
 		buffer_to_send[i] = 0;
 	}
 	*((data_to_send *) &buffer_to_send) = to_send;
-
 
 	while(1){
 		//send the buffer

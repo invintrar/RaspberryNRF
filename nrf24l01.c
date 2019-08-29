@@ -1,6 +1,6 @@
 #include "nrf24l01.h"
 
-/* Function init  */
+/** Function init  */
 void RF24L01_init(void) {
   wiringPiSetup();
 
@@ -11,11 +11,10 @@ void RF24L01_init(void) {
   //SPI
   if( wiringPiSPISetup(0, 5000000) == -1 )
   	printf("SPI0 No se Inicia Correctamente.\n");
-  else
-  	printf("SPI0 Iniciado Correctamente.\n");
+
 }//End init
 
-/* Function send command */
+/** Function send command */
 void RF24L01_send_command(uint8_t command) {
   uint8_t aux[2];
   aux[0] = command;
@@ -23,7 +22,7 @@ void RF24L01_send_command(uint8_t command) {
   wiringPiSPIDataRW(CHANNEL, aux, 2);
 }//End Send Command
 
-/* Function read register */
+/** Function read register */
 uint8_t RF24L01_read_register(uint8_t register_addr) {
   //Send address and read command
   aux[0] = RF24L01_command_R_REGISTER | register_addr;
@@ -33,7 +32,7 @@ uint8_t RF24L01_read_register(uint8_t register_addr) {
   return aux[1];
 }//End Read Register
 
-/* Function Write Register */
+/** Function Write Register */
 void RF24L01_write_register(uint8_t register_addr, uint8_t *value, uint8_t length) {
   uint8_t i, aux[length+1];
   //Address and write command
@@ -45,7 +44,7 @@ void RF24L01_write_register(uint8_t register_addr, uint8_t *value, uint8_t lengt
    wiringPiSPIDataRW( CHANNEL, aux, (length+1) );
 }//End Werite Register
 
-/* Función Setup */
+/** Función Setup */
 void RF24L01_setup(uint8_t *tx_addr, uint8_t *rx_addr, uint8_t channel) {
   RF24L01_CE_setLow(); //CE -> Low
 
@@ -64,7 +63,7 @@ void RF24L01_setup(uint8_t *tx_addr, uint8_t *rx_addr, uint8_t channel) {
  /* Enable Auto Acknowledgment(0x01) */
   RF24L01_reg_EN_AA_content EN_AA;
   *((uint8_t *)&EN_AA) = 0;
-  EN_AA.ERX_P0 = 1;//Enable data pipe 0
+  EN_AA.ENAA_P0 = 1;//Enable data pipe 0
   RF24L01_write_register(RF24L01_reg_EN_AA, ((uint8_t *)&EN_AA), 1);
 
   /* Enable RX Address(0x02) */
@@ -112,9 +111,9 @@ void RF24L01_setup(uint8_t *tx_addr, uint8_t *rx_addr, uint8_t channel) {
   RX_PW_P0.RX_PW_P0 = 0x20;//Number of bytes in RX payload in data pipe 0 (32 bytes).
   RF24L01_write_register(RF24L01_reg_RX_PW_P0, ((uint8_t *)&RX_PW_P0), 1);
 
-}//Fin SETUP
+}//End Setup
 
-
+/** Function Set Mode TX */
 void RF24L01_set_mode_TX(void) {
   RF24L01_send_command(RF24L01_command_FLUSH_TX);
 
@@ -123,39 +122,46 @@ void RF24L01_set_mode_TX(void) {
 
   RF24L01_reg_CONFIG_content config;
   *((uint8_t *)&config) = 0;
-  config.PWR_UP = 1;
-  config.EN_CRC = 1;
-  config.MASK_MAX_RT = 0;
-  config.MASK_TX_DS = 0;
-  config.MASK_RX_DR = 0;
+  config.PRIM_RX 	 = 0;//PTX
+  config.PWR_UP  	 = 1;//Power Up
+  config.CRCO    	 = 0;//Enconding 1 byte
+  config.EN_CRC      = 1;//Enable CRC
+  config.MASK_MAX_RT = 0;//Active low interrupt
+  config.MASK_TX_DS  = 0;//Active low interrupt
+  config.MASK_RX_DR  = 0;//Active low interrupt
   RF24L01_write_register(RF24L01_reg_CONFIG, ((uint8_t *)&config), 1);
-}//FIN SET_MODE_TX
 
+}//End Set Mode TX
 
+/** Function Set Mode RX */
 void RF24L01_set_mode_RX(void) {
   RF24L01_reg_CONFIG_content config;
   *((uint8_t *)&config) = 0;
-  config.PWR_UP = 1;
-  config.PRIM_RX = 1;
-  config.EN_CRC = 1;
-  config.MASK_MAX_RT = 0;
-  config.MASK_TX_DS = 0;
-  config.MASK_RX_DR = 0;
+  config.PRIM_RX 	 = 1;//PRX
+  config.PWR_UP 	 = 1;//Power Up
+  config.CRCO    	 = 0;//Enconding 1 byte
+  config.EN_CRC 	 = 1;//Enable CRC
+  config.MASK_MAX_RT = 0;//Active low interrupt
+  config.MASK_TX_DS  = 0;//Active low interrupt
+  config.MASK_RX_DR  = 0;//Active low interrupt
   RF24L01_write_register(RF24L01_reg_CONFIG, ((uint8_t *)&config), 1);
 
   //Clear the status register to discard any data in the buffers
   RF24L01_reg_STATUS_content a;
   *((uint8_t *) &a) = 0;
-  a.RX_DR = 1;
+  a.RX_DR  = 1;
   a.MAX_RT = 1;
-  a.TX_DS = 1;
+  a.TX_DS  = 1;
   RF24L01_write_register(RF24L01_reg_STATUS, (uint8_t *) &a, 1);
+
   RF24L01_send_command(RF24L01_command_FLUSH_RX);
+
   //CE -> High
   RF24L01_CE_setHigh();
-}//FIN SET_MODE_RX
 
+}//End Set Mode RX
 
+/** Function Get Status  */
 RF24L01_reg_STATUS_content RF24L01_get_status(void) {
   uint8_t status;
   uint8_t aux[2];
@@ -167,67 +173,70 @@ RF24L01_reg_STATUS_content RF24L01_get_status(void) {
   status = aux[1];
 
   return *((RF24L01_reg_STATUS_content *) &status);
-}
 
+}//End Get Status
 
+/** Function Write Payload */
 void RF24L01_write_payload(uint8_t *data, uint8_t length) {
-  uint8_t aux[2], i;
+  uint8_t aux[33], i;
+
   RF24L01_reg_STATUS_content a;
   a = RF24L01_get_status();
   if (a.MAX_RT == 1) {
-  	printf("Si llega Aki\n");
     //If MAX_RT, clears it so we can send data
     *((uint8_t *) &a) = 0;
     a.TX_DS = 1;
     RF24L01_write_register(RF24L01_reg_STATUS, (uint8_t *) &a, 1);
   }
+
   //Send address and command
   aux[0] = RF24L01_command_W_TX_PAYLOAD;
-  aux[1] = 0x00;
-  wiringPiSPIDataRW(CHANNEL, aux, 2);
 
   //Send data
-  for(i =0; i < length; i++){
-  	aux[0] = data[i];
-  	aux[1] = 0x00;
-    wiringPiSPIDataRW(CHANNEL, data, 2);
+  for(i = 1; i < length+1; i++){
+  	aux[i] = data[i-1];
   }
+
+  wiringPiSPIDataRW(CHANNEL, aux, sizeof(aux));
 
   //Generates an impulsion for CE to send the data
   RF24L01_CE_setHigh();
   uint16_t delay = 0xFF;
   while(delay--);
   RF24L01_CE_setLow();
-  printf("Here\n");
 
-}
+}//End Write Payload
 
-
+/** Function Read Payload  */
 void RF24L01_read_payload(uint8_t *data, uint8_t length) {
-  uint8_t i, status,aux[2];
+  uint8_t i, status,aux[33];
 
-  //Send address
+  //Command of Read RX Payload
   aux[0] = RF24L01_command_R_RX_PAYLOAD;
-  aux[1] = 0x00;
-  wiringPiSPIDataRW(CHANNEL, aux, 2);
 
   //Get data
-  for (i=0; i<length; i++) {
-  	aux[0] = 0x00;
-  	aux[1] = 0x00;
-  	wiringPiSPIDataRW(CHANNEL, aux, 2);
-    *(data++) = aux[1];
+  for (i=1; i<length+1; i++) {
+  	aux[i] = 0x00;
+  }
+
+  wiringPiSPIDataRW(CHANNEL, aux, sizeof(aux));
+
+  for(i = 1; i<length+1; i++){
+  	*(data++) = aux[i];
   }
 
   RF24L01_write_register(RF24L01_reg_STATUS, &status, 1);
   RF24L01_send_command(RF24L01_command_FLUSH_RX);
-}
 
+}//End Read Payload
+
+/** Function Was Data Sent */
 uint8_t RF24L01_was_data_sent(void) {
   RF24L01_reg_STATUS_content a;
   a = RF24L01_get_status();
 
   uint8_t res = 0;
+
   if (a.TX_DS) {
     res = 1;
   }
@@ -236,16 +245,21 @@ uint8_t RF24L01_was_data_sent(void) {
   }
 
   return res;
-}
 
+}//End Was Data Sent
+
+/** Function Is Data Available */
 uint8_t RF24L01_is_data_available(void) {
   RF24L01_reg_STATUS_content a;
   a = RF24L01_get_status();
   return a.RX_DR;
-}
 
+}//End Is Data Available
+
+/** Function Clear Interrupts */
 void RF24L01_clear_interrupts(void) {
   RF24L01_reg_STATUS_content a;
   a = RF24L01_get_status();
   RF24L01_write_register(RF24L01_reg_STATUS, (uint8_t*)&a, 1);
-}
+
+}//End Clear Interrupts
