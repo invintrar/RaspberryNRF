@@ -1,4 +1,3 @@
-/* Trabajo Compartido con Jose */
 #include "main.h"
 
 uint8_t mutex;
@@ -40,6 +39,7 @@ int main(){
 
 	//Prepare the buffer to send from the data_to_send struct
 	uint8_t buffer_to_send[32];
+
 	for (i = 0; i < 32; i++){
 		buffer_to_send[i] = 0;
 	}
