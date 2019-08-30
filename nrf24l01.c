@@ -31,9 +31,9 @@ void RF24L01_setup(uint8_t *tx_addr, uint8_t *rx_addr, uint8_t channel) {
   RF24L01_reg_CONFIG_content config;
   *((uint8_t *)&config) = 0;
   config.PRIM_RX = 1;//RX/TX control(1: PRX, 0:PTX)
-  config.PWR_UP = 0;//1: Power up, 0: Power Down
-  config.CRCO = 0;//CRC (1: 1 byte, 0: 2 bytes
-  config.EN_CRC = 1;//Enable CRC. Forced high if one of the bits in the EN_AA is high
+  config.PWR_UP  = 0;//1: Power up, 0: Power Down
+  config.CRCO    = 0;//CRC (1: 1 byte, 0: 2 bytes
+  config.EN_CRC  = 1;//Enable CRC. Forced high if one of the bits in the EN_AA is high
   config.MASK_MAX_RT = 0;//Mask interrupt caused by MAX_RT(0:Reflect MAX_RT as active low interrupt on the IRQ)
   config.MASK_TX_DS  = 0;//Mask interrupt caused by TX_DS (0:Reflect TX_DS  as active low interrupt on the IRQ)
   config.MASK_RX_DR  = 0;//Mask interrupt caused by RX_DR (0:Reflect RX_DR  as active low interrupt on the IRQ)
@@ -43,12 +43,14 @@ void RF24L01_setup(uint8_t *tx_addr, uint8_t *rx_addr, uint8_t channel) {
   RF24L01_reg_EN_AA_content EN_AA;
   *((uint8_t *)&EN_AA) = 0;
   EN_AA.ENAA_P0 = 1;//Enable data pipe 0
+  EN_AA.ENAA_P1 = 1;//Enable data pipe 1
   RF24L01_write_register(RF24L01_reg_EN_AA, ((uint8_t *)&EN_AA), 1);
 
   /* Enable RX Address(0x02) */
   RF24L01_reg_EN_RXADDR_content RX_ADDR;
   *((uint8_t *)&RX_ADDR) = 0;
   RX_ADDR.ERX_P0 = 1;//Enable data pipe 0
+  RX_ADDR.ERX_P1 = 1;//Enable data pipe 1
   RF24L01_write_register(RF24L01_reg_EN_RXADDR, ((uint8_t *)&RX_ADDR), 1);
 
   /*Setup of Addres Widths(0x03) */
@@ -221,11 +223,14 @@ void RF24L01_write_payload(uint8_t *data, uint8_t length) {
 
   wiringPiSPIDataRW(CHANNEL, aux, sizeof(aux));
 
+  RF24L01_send_command(RF24L01_command_W_ACK_PAYLOAD);
+
   //Generates an impulsion for CE to send the data
   RF24L01_CE_setHigh();
-  uint16_t delay = 0xFF;
+  uint16_t delay = 0xFFFF;
   while(delay--);
   RF24L01_CE_setLow();
+  RF24L01_CE_setHigh();
 
 }//End Write Payload
 

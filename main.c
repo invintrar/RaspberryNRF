@@ -26,8 +26,8 @@ int main(){
 	bandera = 0;
 
 	RF24L01_init();
-	RF24L01_clear_setup();
-	//RF24L01_setup(tx_addr, rx_addr, 12);
+	//RF24L01_clear_setup();
+	RF24L01_setup(tx_addr, rx_addr, 12);
 
 	Led_SetOutput();
 	wiringPiISR(RF_IRQ , INT_EDGE_FALLING, interrupcion);
@@ -40,32 +40,31 @@ int main(){
 	uint8_t buffer_to_send[32];
 
 	for (i = 0; i < 32; i++){
-		buffer_to_send[i] = 0;
+		buffer_to_send[i] =0xAA;
 	}
 	*((data_to_send *) &buffer_to_send) = to_send;
 
 	while(1){
 		//send the buffer
 		mutex = 0;
-		//RF24L01_set_mode_TX();
-		//RF24L01_write_payload(buffer_to_send, 32);
+		RF24L01_set_mode_TX();
+		RF24L01_write_payload(buffer_to_send, 32);
 		//Wait for the buffer to be sent
 		printf("Wait for the buffer to be sent\n...");
 		while(!mutex);
 		if(mutex != 1)
 			printf("The transmission failed\n");
 		printf("Transmision Completada.\n");
-		Led_SetLow();
 
 		//Wait for the response
-		/* TOD : implement a  timeout if nothing is received after a certain amoun of time*/
+		/** Todo: implement a  timeout if nothing is received after a certain amoun of time*/
 		printf("Wait for the response\n");
 		mutex = 0;
-		//RF24L01_set_mode_RX();
+		RF24L01_set_mode_RX();
 		while(!mutex);
 		if(mutex == 1){
 			uint8_t recv_data[32];
-			//RF24L01_read_payload(recv_data, 32);
+			RF24L01_read_payload(recv_data, 32);
 			received = *((data_received *) &recv_data);
 
 			asm("nop");//Place a breakpoint here to see memory
@@ -81,13 +80,15 @@ int main(){
 
 
 void interrupcion(){
+	uint8_t sent_info;
+
 	if(bandera == 0)
-		Led_SetHigh();
-	else
 		Led_SetLow();
+	else
+		Led_SetHigh();
+
 	bandera = !bandera;
 
-	uint8_t sent_info;
 	if((sent_info = RF24L01_was_data_sent())){
 		//Packet was sent or max retrie reached
 		mutex = sent_info;
