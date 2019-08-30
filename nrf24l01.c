@@ -1,5 +1,14 @@
 #include "nrf24l01.h"
 
+/*------------------ Function Prototype ----------*/
+
+void RF24L01_send_command(uint8_t command);
+void RF24L01_write_register(uint8_t register_addr, uint8_t *value, uint8_t length);
+uint8_t RF24L01_read_register(uint8_t register_addr);
+RF24L01_reg_STATUS_content RF24L01_get_status(void);
+
+/*------------------ Functions -----------------*/
+
 /** Function init  */
 void RF24L01_init(void) {
   wiringPiSetup();
@@ -13,36 +22,6 @@ void RF24L01_init(void) {
   	printf("SPI0 No se Inicia Correctamente.\n");
 
 }//End init
-
-/** Function send command */
-void RF24L01_send_command(uint8_t command) {
-  uint8_t aux[2];
-  aux[0] = command;
-  aux[1] = 0x00;
-  wiringPiSPIDataRW(CHANNEL, aux, 2);
-}//End Send Command
-
-/** Function read register */
-uint8_t RF24L01_read_register(uint8_t register_addr) {
-  //Send address and read command
-  aux[0] = RF24L01_command_R_REGISTER | register_addr;
-  aux[1] = 0x00;
-  wiringPiSPIDataRW(CHANNEL, aux, 2);
-
-  return aux[1];
-}//End Read Register
-
-/** Function Write Register */
-void RF24L01_write_register(uint8_t register_addr, uint8_t *value, uint8_t length) {
-  uint8_t i, aux[length+1];
-  //Address and write command
-  aux[0] = RF24L01_command_W_REGISTER | register_addr;
-  for (i = 1; i < (length+1); i++) {
-  	aux[i] = value[i-1];
-  }
-   //Send data
-   wiringPiSPIDataRW( CHANNEL, aux, (length+1) );
-}//End Werite Register
 
 /** Función Setup */
 void RF24L01_setup(uint8_t *tx_addr, uint8_t *rx_addr, uint8_t channel) {
@@ -111,7 +90,42 @@ void RF24L01_setup(uint8_t *tx_addr, uint8_t *rx_addr, uint8_t channel) {
   RX_PW_P0.RX_PW_P0 = 0x20;//Number of bytes in RX payload in data pipe 0 (32 bytes).
   RF24L01_write_register(RF24L01_reg_RX_PW_P0, ((uint8_t *)&RX_PW_P0), 1);
 
+  /* Enable dynamic payload length */
+  RF24L01_reg_DYNPD_content DYNPD;
+  *((uint8_t *)&DYNPD) = 0;
+  RF24L01_write_register(RF24L01_reg_DYNPD, ((uint8_t *)&DYNPD), 1);
+
 }//End Setup
+
+/** Function send command */
+void RF24L01_send_command(uint8_t command) {
+  uint8_t aux[2];
+  aux[0] = command;
+  aux[1] = 0x00;
+  wiringPiSPIDataRW(CHANNEL, aux, 2);
+}//End Send Command
+
+/** Function Write Register */
+void RF24L01_write_register(uint8_t register_addr, uint8_t *value, uint8_t length) {
+  uint8_t i, aux[length+1];
+  //Address and write command
+  aux[0] = RF24L01_command_W_REGISTER | register_addr;
+  for (i = 1; i < (length+1); i++) {
+  	aux[i] = value[i-1];
+  }
+   //Send data
+   wiringPiSPIDataRW( CHANNEL, aux, (length+1) );
+}//End Werite Register
+
+/** Function read register */
+uint8_t RF24L01_read_register(uint8_t register_addr) {
+  //Send address and read command
+  aux[0] = RF24L01_command_R_REGISTER | register_addr;
+  aux[1] = 0x00;
+  wiringPiSPIDataRW(CHANNEL, aux, 2);
+
+  return aux[1];
+}//End Read Register
 
 /** Function Set Mode TX */
 void RF24L01_set_mode_TX(void) {
@@ -130,6 +144,14 @@ void RF24L01_set_mode_TX(void) {
   config.MASK_TX_DS  = 0;//Active low interrupt
   config.MASK_RX_DR  = 0;//Active low interrupt
   RF24L01_write_register(RF24L01_reg_CONFIG, ((uint8_t *)&config), 1);
+
+  //Clear the status register to discard any data in the buffers
+  RF24L01_reg_STATUS_content a;
+  *((uint8_t *) &a) = 0;
+  a.RX_DR  = 1;
+  a.MAX_RT = 1;
+  a.TX_DS  = 1;
+  RF24L01_write_register(RF24L01_reg_STATUS, (uint8_t *) &a, 1);
 
 }//End Set Mode TX
 
@@ -263,3 +285,13 @@ void RF24L01_clear_interrupts(void) {
   RF24L01_write_register(RF24L01_reg_STATUS, (uint8_t*)&a, 1);
 
 }//End Clear Interrupts
+
+/** Function Clear Setup */
+void RF24L01_clear_setup(void){
+	uint8_t aux[2], i;
+	for(i=0; i<=0x1D; i++){
+		aux[0]= RF24L01_command_W_REGISTER | i;
+		aux[1]=0x00;
+		wiringPiSPIDataRW(CHANNEL, aux, 2);
+	}
+}//Enc Clear Setup

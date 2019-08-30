@@ -206,5 +206,5 @@ uint8_t RF24L01_is_data_available(void);
 void RF24L01_read_payload(uint8_t *data, uint8_t length);
 void RF24L01_write_payload(uint8_t *data, uint8_t length);
 void RF24L01_clear_interrupts(void);
-
+void RF24L01_clear_setup(void);
 #endif

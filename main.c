@@ -2,6 +2,8 @@
 
 uint8_t mutex;
 uint8_t bandera;
+uint8_t tx_addr[5] = {0xE7, 0xE7, 0xE7, 0xE7, 0xE7};
+uint8_t rx_addr[5] = {0xD7, 0xD7, 0xD7, 0xD7, 0xD7};
 
 typedef struct _data_to_send{
 	uint32_t op1;
@@ -21,13 +23,11 @@ void interrupcion(void);
 
 int main(){
 	unsigned char i;
-	uint8_t tx_addr[5] = {0x87, 0x87, 0x87, 0x87, 0x87};
-	uint8_t rx_addr[5] = {0x78, 0x78, 0x78, 0x78, 0x78};
-
 	bandera = 0;
 
 	RF24L01_init();
-	RF24L01_setup(tx_addr, rx_addr, 12);
+	RF24L01_clear_setup();
+	//RF24L01_setup(tx_addr, rx_addr, 12);
 
 	Led_SetOutput();
 	wiringPiISR(RF_IRQ , INT_EDGE_FALLING, interrupcion);
@@ -47,8 +47,8 @@ int main(){
 	while(1){
 		//send the buffer
 		mutex = 0;
-		RF24L01_set_mode_TX();
-		RF24L01_write_payload(buffer_to_send, 32);
+		//RF24L01_set_mode_TX();
+		//RF24L01_write_payload(buffer_to_send, 32);
 		//Wait for the buffer to be sent
 		printf("Wait for the buffer to be sent\n...");
 		while(!mutex);
@@ -61,11 +61,11 @@ int main(){
 		/* TOD : implement a  timeout if nothing is received after a certain amoun of time*/
 		printf("Wait for the response\n");
 		mutex = 0;
-		RF24L01_set_mode_RX();
+		//RF24L01_set_mode_RX();
 		while(!mutex);
 		if(mutex == 1){
 			uint8_t recv_data[32];
-			RF24L01_read_payload(recv_data, 32);
+			//RF24L01_read_payload(recv_data, 32);
 			received = *((data_received *) &recv_data);
 
 			asm("nop");//Place a breakpoint here to see memory
