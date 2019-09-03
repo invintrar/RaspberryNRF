@@ -32,7 +32,7 @@ int main(){
 	Led_SetOutput();
 	wiringPiISR(RF_IRQ , INT_EDGE_FALLING, interrupcion);
 
-	Led_SetHigh();
+	Led_SetLow();
 	to_send.op1 = 1;
 	to_send.op2 = 1;
 
@@ -50,10 +50,12 @@ int main(){
 		RF24L01_set_mode_TX();
 		RF24L01_write_payload(buffer_to_send, 32);
 		//Wait for the buffer to be sent
-		printf("Wait for the buffer to be sent\n...");
+		printf("Wait for the buffer to be sent...\n");
 		while(!mutex);
-		if(mutex != 1)
+		if(mutex != 1){
 			printf("The transmission failed\n");
+			return 0;
+		}
 		printf("Transmision Completada.\n");
 
 		//Wait for the response
@@ -83,9 +85,9 @@ void interrupcion(){
 	uint8_t sent_info;
 
 	if(bandera == 0)
-		Led_SetLow();
-	else
 		Led_SetHigh();
+	else
+		Led_SetLow();
 
 	bandera = !bandera;
 
@@ -102,6 +104,7 @@ void interrupcion(){
 		RF24L01_clear_interrupts();
 		return;
 	}
+
 
 	RF24L01_clear_interrupts();
 }

@@ -191,11 +191,10 @@ RF24L01_reg_STATUS_content RF24L01_get_status(void) {
   uint8_t aux[2];
 
   //Send address and command
-  aux[0] = RF24L01_command_NOP;
+  aux[0] = RF24L01_reg_STATUS;
   aux[1] = 0x00;
   wiringPiSPIDataRW(CHANNEL, aux, 2);
   status = aux[1];
-
   return *((RF24L01_reg_STATUS_content *) &status);
 
 }//End Get Status
@@ -230,6 +229,7 @@ void RF24L01_write_payload(uint8_t *data, uint8_t length) {
   uint16_t delay = 0xFFFF;
   while(delay--);
   RF24L01_CE_setLow();
+
   RF24L01_CE_setHigh();
 
 }//End Write Payload
@@ -261,7 +261,6 @@ void RF24L01_read_payload(uint8_t *data, uint8_t length) {
 uint8_t RF24L01_was_data_sent(void) {
   RF24L01_reg_STATUS_content a;
   a = RF24L01_get_status();
-
   uint8_t res = 0;
 
   if (a.TX_DS) {
