@@ -32,7 +32,7 @@ void RF24L01_setup(uint8_t *tx_addr, uint8_t *rx_addr, uint8_t channel) {
   *((uint8_t *)&config) = 0;
   config.PRIM_RX = 1;//RX/TX control(1: PRX, 0:PTX)
   config.PWR_UP  = 0;//1: Power up, 0: Power Down
-  config.CRCO    = 0;//CRC (1: 1 byte, 0: 2 bytes
+  config.CRCO    = 0;//CRC (0-1 byte, 1-2 bytes)
   config.EN_CRC  = 1;//Enable CRC. Forced high if one of the bits in the EN_AA is high
   config.MASK_MAX_RT = 0;//Mask interrupt caused by MAX_RT(0:Reflect MAX_RT as active low interrupt on the IRQ)
   config.MASK_TX_DS  = 0;//Mask interrupt caused by TX_DS (0:Reflect TX_DS  as active low interrupt on the IRQ)
@@ -86,7 +86,7 @@ void RF24L01_setup(uint8_t *tx_addr, uint8_t *rx_addr, uint8_t channel) {
   /* Escribimos la direccion en tx(0x10)  */
   RF24L01_write_register(RF24L01_reg_TX_ADDR, tx_addr, 5);
 
-  /* RX payload in data pip 0 (0x11) */
+  /* RX payload in data pipe0 (0x11) */
   RF24L01_reg_RX_PW_P0_content RX_PW_P0;
   *((uint8_t *)&RX_PW_P0) = 0;
   RX_PW_P0.RX_PW_P0 = 0x20;//Number of bytes in RX payload in data pipe 0 (32 bytes).
@@ -226,7 +226,7 @@ void RF24L01_write_payload(uint8_t *data, uint8_t length) {
 
   //Generates an impulsion for CE to send the data
   RF24L01_CE_setHigh();
-  uint16_t delay = 0xFFFF;
+  uint16_t delay = 0xFF;
   while(delay--);
   RF24L01_CE_setLow();
 
@@ -253,6 +253,7 @@ void RF24L01_read_payload(uint8_t *data, uint8_t length) {
   }
 
   RF24L01_write_register(RF24L01_reg_STATUS, &status, 1);
+
   RF24L01_send_command(RF24L01_command_FLUSH_RX);
 
 }//End Read Payload
