@@ -40,10 +40,11 @@ int main(){
 	uint8_t buffer_to_send[32];
 
 	for (i = 0; i < 32; i++){
-		buffer_to_send[i] =0xAA;
+		buffer_to_send[i] =0x54;
 	}
+	/*
 	*((data_to_send *) &buffer_to_send) = to_send;
-
+	*/
 
 	while(1){
 		mutex = 0;
