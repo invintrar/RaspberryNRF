@@ -1,5 +1,7 @@
 #include "main.h"
 
+/* En esta parte se edito desde raspberry v2*/
+
 uint8_t mutex;
 uint8_t bandera;
 uint8_t tx_addr[5] = {0x78, 0x78, 0x78, 0x78, 0x78};
