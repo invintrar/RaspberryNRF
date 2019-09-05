@@ -17,3 +17,5 @@ Para ver numero de linea en nano
 	gcc -o nombreSalida nombrePrograma.c -lwiringPi
 
 
+				Para ver git log
+		git log --online --all --decorate -graph
