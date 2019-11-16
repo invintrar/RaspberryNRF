@@ -1,3 +1,6 @@
+/*
+@author: darwinzh
+*/
 #include "main.h"
 
 /* En esta parte se edito desde raspberry v2*/

@@ -1,3 +1,8 @@
+/*
+*
+*Author: darwinzh
+*
+*/
 #include "nrf24l01.h"
 
 /*------------------ Function Prototype ----------*/
