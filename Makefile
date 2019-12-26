@@ -4,7 +4,11 @@ main:
 	./output
 	rm output
 
-main1:
+nrf:
 	gcc -o output main1.c nrf24l01.c -lwiringPi
+	./output
+	rm output
+send:
+	gcc -o output send.c nrf24l01.c -lwiringPi
 	./output
 	rm output
