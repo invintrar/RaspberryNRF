@@ -1,6 +1,6 @@
 /*
 *
-*Author: darwinzh
+*Author: DzhL
 *
 */
 #include "nrf24l01.h"
@@ -133,7 +133,7 @@ void RF24L01_write_register(uint8_t register_addr, uint8_t *value, uint8_t lengt
   }
    //Send data
    wiringPiSPIDataRW( CHANNEL, aux, (length+1) );
-}//End Werite Register
+}//End Write Register
 
 
 
@@ -298,8 +298,6 @@ void RF24L01_clear_interrupts(void) {
 void RF24L01_powerDown(void){
 	RF24L01_CE_setLow(); //CE -> Low
 
-	delayMicroseconds(200);
-
 	// Configuration Register(0x00)
 	RF24L01_reg_CONFIG_content config;
   	*((uint8_t *)&config) = 0;
@@ -311,6 +309,8 @@ void RF24L01_powerDown(void){
   	config.EN_CRC  = 1;
     RF24L01_write_register(RF24L01_reg_CONFIG, ((uint8_t *)&config), 1);
 
-    delayMicroseconds(200);
+}// End Power Down
 
-}
+/*
+*	End File
+*/

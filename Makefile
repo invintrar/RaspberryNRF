@@ -12,3 +12,7 @@ send:
 	gcc -o output send.c nrf24l01.c -lwiringPi
 	./output
 	rm output
+uart:
+	gcc -o output uartP.c -lwiringPi
+	./output
+	rm output
