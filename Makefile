@@ -13,6 +13,11 @@ send:
 	./output
 	rm output
 uart:
-	gcc -o output uartP.c -lwiringPi
+	gcc -o output uart.c -lwiringPi
+	./output
+	rm output
+
+maingps:
+	gcc -o output maingps.c gps.c -lwiringPi -lm
 	./output
 	rm output
