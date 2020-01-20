@@ -41,13 +41,14 @@ void readGps(uint8_t *trama){
 //Get Data Gps
 dataGps getDataGps(void)
 {
-	uint8_t trama[60], i, j, pos[12], auxMi[8], intValue, aux2, flag;
+	uint8_t trama[60], i, j, pos[12],  intValue, aux2, flag;
 	float faux;
 
 	dataGps gps;
 	//Inicializamos 
 	flag = 0;
 	j = 0;
+	aux2=0;
 	gps.hour = 0;
 	gps.minute = 0;
 	gps.second = 0;
@@ -119,17 +120,9 @@ dataGps getDataGps(void)
 
 	//Minutos y segundos
 	intValue =(trama[pos[2] + 3] - '0')*10 + (trama[pos[2] + 4]-'0');
-	auxMi[0] = trama[pos[2] + 3];
-	auxMi[1] = trama[pos[2] + 4];
-	auxMi[2] = trama[pos[2] + 5];
-	auxMi[3] = trama[pos[2] + 6];
-	auxMi[4] = trama[pos[2] + 7];
-	auxMi[5] = trama[pos[2] + 8];
-	auxMi[6] = trama[pos[2] + 9];
-	auxMi[7] = '\0';
-	faux = atof(auxMi);
-	faux = (faux -intValue)*60;
-	aux2 = round(faux);
+	faux = (trama[pos[2] + 6] - '0')*1000 + (trama[pos[2] + 7] - '0')*100 +	(trama[pos[2] + 8] - '0')*10 + (trama[pos[2] + 9] - '0');
+	faux = roundf(faux*6/1000);
+	aux2 = faux;
 	gps.minutosLatitud = intValue;
 	gps.segundosLatitud = aux2;
 
@@ -143,17 +136,9 @@ dataGps getDataGps(void)
 
 	//Minutos y segundos
 	intValue =(trama[pos[4] + 4] - '0')*10 + (trama[pos[4] + 5]-'0');
-	auxMi[0] = trama[pos[4] + 4];
-	auxMi[1] = trama[pos[4] + 5];
-	auxMi[2] = trama[pos[4] + 6];
-	auxMi[3] = trama[pos[4] + 7];
-	auxMi[4] = trama[pos[4] + 8];
-	auxMi[5] = trama[pos[4] + 9];
-	auxMi[6] = trama[pos[4] + 10];
-	auxMi[7] = '\0';
-	faux = atof(auxMi);
-	faux = (faux -intValue)*60;
-	aux2 = round(faux);
+	faux = (trama[pos[4] + 7] - '0')*1000 + (trama[pos[4] + 8] - '0')*100 +	(trama[pos[4] + 9] - '0')*10 + (trama[pos[4] + 10] - '0');
+	faux = roundf(faux*6/1000);
+	aux2 = faux;
 	gps.minutosLongitud = intValue;
 	gps.segundosLongitud = aux2;
 
