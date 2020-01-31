@@ -1,21 +1,23 @@
-			Para usar editor nao GNU
-rm eliminar archivo o directorio
-mv mover archivo o renombrar
-ls lista directorio actual
-cd se desplaza entre directorios
-cp copia un archiov o directorio
-jobs se ve todo los procesos que estan corriendo
-bg manda a un proceso que corra en modo bacground
-fg trae un proceso a frontground
-top lista todo los proceso que se estan ejecutando
+		Comandos Linux	
+rm: Eliminar archivo o directorio
+mv: mover archivo o renombrar
+ls: lista directorio actual
+cd: se desplaza entre directorios
+cp: copia un archiov o directorio
+jobs: se ve todo los procesos que estan corriendo
+bg: manda a un proceso que corra en modo bacground
+fg: trae un proceso a frontground
+top: lista todo los proceso que se estan ejecutando
+
+		Comando Editor Nano
 Para Editar con nano y ver en que linea me ecuentro se utiliza:
 	nano nombreDelArchivo.c/h -c
 Para ver numero de linea en nano
 	Alt + Shift + 3.
 
-					Para compilar en C:
-	gcc -o nombreSalida nombrePrograma.c -lwiringPi
+		Para compilar en C:
+gcc -o nombreSalida nombrePrograma.c -lwiringPi
 
 
-				Para ver git log
-		git log --online --all --decorate -graph
+		Para ver git log
+git log --online --all --decorate -graph

@@ -7,10 +7,10 @@
 
 /*------------------ Function Prototype ----------*/
 
-void RF24L01_send_command(uint8_t command);
 void RF24L01_write_register(uint8_t register_addr, uint8_t *value, uint8_t length);
 uint8_t RF24L01_read_register(uint8_t register_addr);
 RF24L01_reg_STATUS_content RF24L01_get_status(void);
+void RF24L01_send_command(uint8_t command); 
 
 /*------------------ Functions -----------------*/
 
@@ -24,7 +24,7 @@ void RF24L01_init(void) {
   RF24L01_CE_setLow();
 
   //SPI
-  if( wiringPiSPISetup(0, 5000000) == -1 )
+  if( wiringPiSPISetup(0, 10000000) == -1 )
   	printf("SPI0 No se Inicia Correctamente.\n");
 
 }//End init
@@ -34,7 +34,6 @@ void RF24L01_init(void) {
 /** Función Setup */
 void RF24L01_setup(uint8_t *tx_addr, uint8_t *rx_addr, uint8_t channel) {
   RF24L01_CE_setLow(); //CE -> Low
-  delayMicroseconds(200);
 
   // Enable Auto Acknowledgment(0x01)
   RF24L01_reg_EN_AA_content EN_AA;
@@ -88,23 +87,35 @@ void RF24L01_setup(uint8_t *tx_addr, uint8_t *rx_addr, uint8_t channel) {
   // Escribimos la direccion en TX(0x10)
   RF24L01_write_register(RF24L01_reg_TX_ADDR, tx_addr, 5);
 
-  // RX payload in data pipe0 (0x11) */
+  // RX payload in data pipe0 (0x11) 
   RF24L01_reg_RX_PW_P0_content RX_PW_P0;
   *((uint8_t *)&RX_PW_P0) = 0;
   //Number of bytes in RX payload in data Pipe0 (8 bytes).
   RX_PW_P0.RX_PW_P0 = 0x08;
   RF24L01_write_register(RF24L01_reg_RX_PW_P0, ((uint8_t *)&RX_PW_P0), 1);
+  
+  RF24L01_reg_STATUS_content status;
+  *((uint8_t *)&status)=0;
+  status.RX_DR = 1;
+  status.TX_DS = 1;
+  status.MAX_RT = 1;
+  RF24L01_write_register(RF24L01_reg_STATUS , ((uint8_t *)&status), 1);
+  
+  RF24L01_send_command(RF24L01_command_FLUSH_TX);
+  RF24L01_send_command(RF24L01_command_FLUSH_RX);
 
   // Configuration Register(0x00)
   RF24L01_reg_CONFIG_content config;
   *((uint8_t *)&config) = 0;
   //1: Power up, 0: Power Down
   config.PWR_UP  = 1;
-  //CRC (0-1 byte, 1-2 bytes)
+   //RX/TX 1:PRX,0:PTX
+  config.PRIM_RX = 1;
+  //CRC (0:1 byte, 1:2 bytes)
   config.CRCO    = 1;
   //Enable CRC. Forced high if one of the bits in the EN_AA is high
   config.EN_CRC  = 1;
-  RF24L01_write_register(RF24L01_reg_CONFIG, ((uint8_t *)&config), 1);
+   RF24L01_write_register(RF24L01_reg_CONFIG, ((uint8_t *)&config), 1);
 
   // Delay 5 ms
   delay(5);
@@ -115,8 +126,7 @@ void RF24L01_setup(uint8_t *tx_addr, uint8_t *rx_addr, uint8_t channel) {
 
 /** Function send command */
 void RF24L01_send_command(uint8_t command) {
-  uint8_t aux[2];
-  aux[0] = command;
+  uint8_t aux[2]; aux[0] = command;
   aux[1] = 0x00;
   wiringPiSPIDataRW(CHANNEL, aux, 2);
 }//End Send Command
@@ -167,7 +177,6 @@ uint8_t RF24L01_read_register(uint8_t register_addr) {
 void RF24L01_set_mode_RX(void) {
   // CE->Low
   RF24L01_CE_setLow();
-  delayMicroseconds(200);
 
   RF24L01_reg_CONFIG_content config;
   *((uint8_t *)&config) = 0;
@@ -216,7 +225,7 @@ void sendData(uint8_t data[],uint8_t size ){
     //delay 10us
     delayMicroseconds(12);
     // CE->Low
-    //RF24L01_CE_setLow();
+    RF24L01_CE_setLow();
 
 }//End Fuction Send Data
 
@@ -264,7 +273,9 @@ void RF24L01_read_payload(uint8_t *data, uint8_t length) {
 
 
 
+//Function Status
 uint8_t RF24L01_status(void){
+	//Variable
 	uint8_t res = 0;
 	RF24L01_reg_STATUS_content status;
 
@@ -279,12 +290,13 @@ uint8_t RF24L01_status(void){
 	}
 
 	return res;
-}
+}//End Status
 
 
 
 /** Function Clear Interrupts */
 void RF24L01_clear_interrupts(void) {
+	//Create variable
 	RF24L01_reg_STATUS_content status;
 
  	RF24L01_send_command(RF24L01_command_FLUSH_TX);
@@ -295,6 +307,9 @@ void RF24L01_clear_interrupts(void) {
 
 }//End Clear Interrupts
 
+
+
+//Function Power Down
 void RF24L01_powerDown(void){
 	RF24L01_CE_setLow(); //CE -> Low
 

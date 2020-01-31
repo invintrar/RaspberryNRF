@@ -1,6 +1,6 @@
 /*
 *
-* Author: darwinzh
+* Author: DzhL
 *
 */
 #ifndef MAIN_H
@@ -19,3 +19,6 @@
 #define Led_SetLow() 	digitalWrite(LED, LOW)
 
 #endif
+/**
+ * End File
+ **/

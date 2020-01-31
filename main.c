@@ -2,130 +2,146 @@
 @author: darwinzh
 */
 #include "main.h"
+#include <signal.h>
+
 
 /* En esta parte se edito desde raspberry v2*/
 
-uint8_t mutex;
-uint8_t bandera;
+uint8_t bNrf, bTog, bMrx, bInit;
+uint16_t sensor;
+
 uint8_t tx_addr[5] = {0x78, 0x78, 0x78, 0x78, 0x78};
 uint8_t rx_addr[5] = {0x78, 0x78, 0x78, 0x78, 0x78};
 
-typedef struct _data_to_send{
-	uint32_t op1;
-	uint32_t op2;
-}data_to_send;
-data_to_send to_send;
+uint8_t txEnv[8];
+uint8_t rxRec[8];
 
-typedef struct _data_received{
-	uint32_t add;
-	uint32_t sub;
-	uint32_t mult;
-	uint32_t div;
-}data_received;
-data_received received;
+struct tm *ptr;
+time_t t;
+
+static uint8_t run;
 
 void interrupcion(void);
 
-int main(){
-	unsigned char i;
-	bandera = 0;
+//Catch Ctrl C
+void intHandler(int dummy){
+	Led_SetLow();
+	RF24L01_powerDown();
+	run = 0;
+}
 
+float fnabs(float a){
+		if(a<0)
+				a=-a;
+		return a;
+}
+
+int main(){
+	float corriente, promedio;
+	float voltajeS;
+	uint8_t ipr;
+	bNrf = 3;
+	bTog = 1;
+	bInit = 0;
+	bMrx = 1;
+	run = 1;
+	ipr=promedio=0;
+
+	//Setting Port CE and SPI
 	RF24L01_init();
 
-	RF24L01_setup(tx_addr, rx_addr, 12);
+	//Setting address nrf and channel 
+	RF24L01_setup(tx_addr, rx_addr, 22);
 
 	Led_SetOutput();
+
+	//Setting Interrupt
 	wiringPiISR(RF_IRQ , INT_EDGE_FALLING, interrupcion);
 
-	Led_SetLow();
-	to_send.op1 = 1;
-	to_send.op2 = 1;
 
-	//Prepare the buffer to send from the data_to_send struct
-	uint8_t buffer_to_send[32];
 
-	for (i = 0; i < 32; i++){
-		buffer_to_send[i] =0x54;
-	}
-	/*
-	*((data_to_send *) &buffer_to_send) = to_send;
-	*/
+	//Catch Ctrl-C
+	signal(SIGINT,intHandler);
 
-	while(1){
-		mutex = 0;
-
-		/*Set Mode TX */
-		RF24L01_set_mode_TX();
-
-		/*Write Payload*/
-		RF24L01_write_payload(buffer_to_send, sizeof(buffer_to_send));
-
-		//Wait for the buffer to be sent
-		printf("Wait for the buffer to be sent...\n");
-		while(!mutex);
-		if(mutex != 1){
-			printf("The transmission failed\n\n");
-			//return 0;
-		}
-		printf("Transmision Completada.\n\n");
-
-		//Wait for the response
-		/** Todo: implement a  timeout if nothing is received after a certain amoun of time*/
-		printf("Wait for the response\n");
-
-		mutex = 0;
-
-		/*Set Mode RX*/
-		RF24L01_set_mode_RX();
-
-		while(!mutex);
-
-		if(mutex == 1){
-			uint8_t recv_data[32];
-
-			RF24L01_read_payload(recv_data, sizeof(recv_data));
-
-			printf("Data Recive:");
-			for(i = 0; i < sizeof(recv_data); i++){
-				printf("%X",recv_data[i]);
-			}
-			printf("\n\n");
-
-			received = *((data_received *) &recv_data);
-
-			asm("nop");//Place a breakpoint here to see memory
+	while(run){
+		if(bTog){
+			bTog = 0;
+			Led_SetHigh();
+			delay(250);
 		}else{
-			printf("Something happened\n");
+			bTog = 1;
+			Led_SetLow();
+			delay(250);
 		}
 
-	}
-}
+		// Get time
+		t = time(NULL);
+		ptr = localtime(&t);
+
+		//Prepare the buffer to send from the data_to_send struct
+		txEnv[0] = ptr->tm_sec;
+		txEnv[1] = ptr->tm_min;
+		txEnv[2] = ptr->tm_hour;
+		txEnv[3] = (ptr->tm_wday)+1;
+		txEnv[4] = (ptr->tm_mon)+1;
+		txEnv[5] = ptr->tm_mday;
+		txEnv[6] = ptr->tm_year-100;
+		txEnv[7] = 0x48;
+
+		switch(bNrf){
+			case 1:
+				if(bMrx==1){
+					bNrf =0;
+					bMrx=0;
+					RF24L01_set_mode_RX();
+					printf("-----Mode  RX-----\nEsperando  Dato...\n");
+				}else{
+					bNrf = 3;
+				    printf("\nData Rady\n");
+					printf("RC:%d:%d:%d\n",rxRec[3],rxRec[2],rxRec[1]);
+					sensor=(rxRec[5]<<8) | rxRec[4];
+					voltajeS = sensor*3.3/1023;
+					corriente = (fnabs(voltajeS - 1.65)/0.0132)+2;
+					if(ipr > 5){
+							corriente =(promedio/5);
+							promedio = 0;
+							ipr=0;
+					}else{
+							ipr++;
+							promedio += corriente;
+					}
+					printf("Consumo:%.2f mA\n",corriente);
+				}
+				break;
+			case 2:
+				bNrf = 1;
+				bMrx = 1;
+				printf("Data Sent\n");
+				break;
+			case 3:
+				bNrf= 0;
+				printf("CPU %d:%d:%d\n", txEnv[2], txEnv[1], txEnv[0]);
+				sendData(txEnv, sizeof(txEnv));
+				break;
+			default:
+				break;
+		}
+
+	}//End while
+	return 0;
+}//End Main
 
 
 void interrupcion(){
-	uint8_t sent_info;
+	// Return 1:Data Sent, 2:RX_DR, 3:MAX_RT
+	bNrf = RF24L01_status();
 
-	if(bandera == 0)
-		Led_SetHigh();
-	else
-		Led_SetLow();
-
-	bandera = !bandera;
-
-	if((sent_info = RF24L01_was_data_sent())){
-		//Packet was sent or max retrie reached
-		mutex = sent_info;
+	if(bNrf){
+		RF24L01_read_payload(rxRec, sizeof(rxRec));
 		RF24L01_clear_interrupts();
 		return;
 	}
-
-	if(RF24L01_is_data_available()){
-		//Packer was received
-		mutex = 1;
-		RF24L01_clear_interrupts();
-		return;
-	}
-
 
 	RF24L01_clear_interrupts();
 }
+

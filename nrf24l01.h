@@ -1,6 +1,6 @@
 /**
 *
-*Author: darwinzh
+*Author: DzhL
 *
 */
 
@@ -14,7 +14,6 @@
 #include <wiringPiSPI.h>
 
 /*Definimos los puertos a utilizar*/
-#define RF_CS	10
 #define RF_CE	3
 #define RF_IRQ 	4
 #define CHANNEL 0
@@ -214,16 +213,30 @@ typedef struct _RF24L01_reg_FEATURE_content {
   uint8_t reserved   :4;
 } RF24L01_reg_FEATURE_content;
 
+
+
+/** Function Prototype **/
+
 void RF24L01_init(void);
+
 void RF24L01_setup(uint8_t *tx_addr, uint8_t *rx_addr, uint8_t channel);
-void RF24L01_set_mode_TX(void);
-void RF24L01_set_mode_RX(void);
-void sendData(uint8_t data[],uint8_t size);
-uint8_t RF24L01_status(void);
-uint8_t RF24L01_was_data_sent(void);
-uint8_t RF24L01_is_data_available(void);
-void RF24L01_read_payload(uint8_t *data, uint8_t length);
+
 void RF24L01_write_payload(uint8_t *data, uint8_t length);
+
+void RF24L01_read_payload(uint8_t *data, uint8_t length);
+
+void RF24L01_set_mode_RX(void);
+
+void sendData(uint8_t data[],uint8_t size);
+
+uint8_t RF24L01_status(void);
+
 void RF24L01_clear_interrupts(void);
+
 void RF24L01_powerDown(void);
+
 #endif
+/**
+ * End File
+ *
+ **/
