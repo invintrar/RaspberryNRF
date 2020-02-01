@@ -13,8 +13,13 @@ uint16_t sensor;
 uint8_t tx_addr[5] = {0x78, 0x78, 0x78, 0x78, 0x78};
 uint8_t rx_addr[5] = {0x78, 0x78, 0x78, 0x78, 0x78};
 
-uint8_t txEnv[8];
-uint8_t rxRec[8];
+//Data sent or receive Nrf24L01 +
+uint8_t txEnv[14];
+uint8_t rxRec[14];
+
+uint32_t valueX;
+uint32_t valueY;
+uint32_t valueZ;
 
 struct tm *ptr;
 time_t t;
@@ -40,7 +45,7 @@ int main(){
 	float corriente, promedio;
 	float voltajeS;
 	uint8_t ipr;
-	bNrf = 3;
+	bNrf = 1;
 	bTog = 1;
 	bInit = 0;
 	bMrx = 1;
@@ -87,6 +92,13 @@ int main(){
 		txEnv[5] = ptr->tm_mday;
 		txEnv[6] = ptr->tm_year-100;
 		txEnv[7] = 0x48;
+		txEnv[8] = 0x48;
+		txEnv[9] = 0x48;
+		txEnv[10] = 0x48;
+		txEnv[11] = 0x48;
+		txEnv[12] = 0x48;
+		txEnv[13] = 0x48;
+
 
 		switch(bNrf){
 			case 1:
@@ -96,21 +108,17 @@ int main(){
 					RF24L01_set_mode_RX();
 					printf("-----Mode  RX-----\nEsperando  Dato...\n");
 				}else{
-					bNrf = 3;
+					bNrf = 0;
 				    printf("\nData Rady\n");
-					printf("RC:%d:%d:%d\n",rxRec[3],rxRec[2],rxRec[1]);
-					sensor=(rxRec[5]<<8) | rxRec[4];
+					printf("RC:%d:%d:%d\n",rxRec[2],rxRec[1],rxRec[0]);
+					sensor=(rxRec[4]<<8) | rxRec[3];
 					voltajeS = sensor*3.3/1023;
 					corriente = (fnabs(voltajeS - 1.65)/0.0132)+2;
-					if(ipr > 5){
-							corriente =(promedio/5);
-							promedio = 0;
-							ipr=0;
-					}else{
-							ipr++;
-							promedio += corriente;
-					}
 					printf("Consumo:%.2f mA\n",corriente);
+					valueX = (rxRec[5]<<12) | (rxRec[6]<<4) | (rxRec[7]>>4);
+					valueY = (rxRec[8]<<12) | (rxRec[9]<<4) | (rxRec[10]>>4);
+					valueZ = (rxRec[11]<<12) | (rxRec[12]<<4) | (rxRec[13]>>4);
+					printf("X:%ld Y:%ld Z:%ld\n",valueX, valueY, valueZ);
 				}
 				break;
 			case 2:
