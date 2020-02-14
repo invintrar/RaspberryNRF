@@ -30,16 +30,19 @@ void RF24L01_init(void) {
 }//End init
 
 
-
-/** Función Setup */
-void RF24L01_setup(uint8_t *tx_addr, uint8_t *rx_addr, uint8_t channel) {
+/** Función Setup */ void RF24L01_setup(uint8_t *tx_addr, uint8_t *rx_addr, uint8_t channel) {
   RF24L01_CE_setLow(); //CE -> Low
+  uint8_t rx[5];
+  uint8_t aux;
 
   // Enable Auto Acknowledgment(0x01)
   RF24L01_reg_EN_AA_content EN_AA;
   *((uint8_t *)&EN_AA) = 0;
   // Enable Auto ACK: Pipe0
   EN_AA.ENAA_P0 = 1;
+  EN_AA.ENAA_P1 = 1; 
+  EN_AA.ENAA_P2 = 1;
+  EN_AA.ENAA_P3 = 1;
   RF24L01_write_register(RF24L01_reg_EN_AA, ((uint8_t *)&EN_AA), 1);
 
   // Enable RX Address(0x02)
@@ -47,6 +50,9 @@ void RF24L01_setup(uint8_t *tx_addr, uint8_t *rx_addr, uint8_t channel) {
   *((uint8_t *)&RX_ADDR) = 0;
   //Enable data Pipe0
   RX_ADDR.ERX_P0 = 1;
+  RX_ADDR.ERX_P1 = 1;
+  RX_ADDR.ERX_P2 = 1;
+  RX_ADDR.ERX_P3 = 1;
   RF24L01_write_register(RF24L01_reg_EN_RXADDR, ((uint8_t *)&RX_ADDR), 1);
 
   // Setup of Addres Widths(0x03)
@@ -84,16 +90,56 @@ void RF24L01_setup(uint8_t *tx_addr, uint8_t *rx_addr, uint8_t channel) {
   // Escribimos la direccion RX en Pipe0(0x0A)
   RF24L01_write_register(RF24L01_reg_RX_ADDR_P0, rx_addr, 5);
 
+  // Escribimos la direccion RX en Pipe1(0x0B)
+  rx[0]=0xB3;
+  rx[1]=0xB4;
+  rx[2]=0xB5;
+  rx[3]=0xB6;
+  rx[4]=0xF1;
+
+  RF24L01_write_register(RF24L01_reg_RX_ADDR_P1, rx, 5);
+
+  // Escribimos la direccion RX en Pipe2(0x0C)
+  aux=0xCD;
+  RF24L01_write_register(RF24L01_reg_RX_ADDR_P2, &aux, 1);
+
+  // Escribimos la direccion RX en Pipe3(0x0D)
+  aux=0xA3;
+  RF24L01_write_register(RF24L01_reg_RX_ADDR_P3, &aux, 1);
+
+
   // Escribimos la direccion en TX(0x10)
   RF24L01_write_register(RF24L01_reg_TX_ADDR, tx_addr, 5);
+
 
   // RX payload in data pipe0 (0x11) 
   RF24L01_reg_RX_PW_P0_content RX_PW_P0;
   *((uint8_t *)&RX_PW_P0) = 0;
-  //Number of bytes in RX payload in data Pipe0 (14 bytes).
-  RX_PW_P0.RX_PW_P0 = 0x0E;
+  //Number of bytes in RX payload in data Pipe0 (8 bytes).
+  RX_PW_P0.RX_PW_P0 = 0x08;
   RF24L01_write_register(RF24L01_reg_RX_PW_P0, ((uint8_t *)&RX_PW_P0), 1);
   
+  // RX payload in data pipe1 (0x12) 
+  RF24L01_reg_RX_PW_P1_content RX_PW_P1;
+  *((uint8_t *)&RX_PW_P1) = 0;
+  //Number of bytes in RX payload in data Pipe1 (8 bytes).
+  RX_PW_P1.RX_PW_P1 = 0x08;
+  RF24L01_write_register(RF24L01_reg_RX_PW_P1, ((uint8_t *)&RX_PW_P1), 1);
+
+  // RX payload in data pipe2 (0x13) 
+  RF24L01_reg_RX_PW_P2_content RX_PW_P2;
+  *((uint8_t *)&RX_PW_P2) = 0;
+  //Number of bytes in RX payload in data Pipe2 (8 bytes).
+  RX_PW_P2.RX_PW_P2 = 0x08;
+  RF24L01_write_register(RF24L01_reg_RX_PW_P2, ((uint8_t *)&RX_PW_P2), 1);
+
+  // RX payload in data pipe3 (0x14) 
+  RF24L01_reg_RX_PW_P3_content RX_PW_P3;
+  *((uint8_t *)&RX_PW_P3) = 0;
+  //Number of bytes in RX payload in data Pipe3 (8 bytes).
+  RX_PW_P3.RX_PW_P3 = 0x08;
+  RF24L01_write_register(RF24L01_reg_RX_PW_P3, ((uint8_t *)&RX_PW_P3), 1);
+
   RF24L01_reg_STATUS_content status;
   *((uint8_t *)&status)=0;
   status.RX_DR = 1;

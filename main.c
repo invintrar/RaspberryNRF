@@ -1,5 +1,6 @@
 /*
-@author: darwinzh
+@author: DzhL
+@date: 2/14/2020
 */
 #include "main.h"
 #include <signal.h>
@@ -14,8 +15,8 @@ uint8_t tx_addr[5] = {0x78, 0x78, 0x78, 0x78, 0x78};
 uint8_t rx_addr[5] = {0x78, 0x78, 0x78, 0x78, 0x78};
 
 //Data sent or receive Nrf24L01 +
-uint8_t txEnv[14];
-uint8_t rxRec[14];
+uint8_t txEnv[8];
+uint8_t rxRec[8];
 
 uint32_t valueX;
 uint32_t valueY;
@@ -84,20 +85,14 @@ int main(){
 		ptr = localtime(&t);
 
 		//Prepare the buffer to send from the data_to_send struct
-		txEnv[0] = ptr->tm_sec;
-		txEnv[1] = ptr->tm_min;
-		txEnv[2] = ptr->tm_hour;
-		txEnv[3] = (ptr->tm_wday)+1;
-		txEnv[4] = (ptr->tm_mon)+1;
-		txEnv[5] = ptr->tm_mday;
-		txEnv[6] = ptr->tm_year-100;
-		txEnv[7] = 0x48;
-		txEnv[8] = 0x48;
-		txEnv[9] = 0x48;
-		txEnv[10] = 0x48;
-		txEnv[11] = 0x48;
-		txEnv[12] = 0x48;
-		txEnv[13] = 0x48;
+		txEnv[0] = 0x01;
+		txEnv[1] = ptr->tm_sec;
+		txEnv[2] = ptr->tm_min;
+		txEnv[3] = ptr->tm_hour;
+		txEnv[4] = (ptr->tm_wday)+1;
+		txEnv[5] = (ptr->tm_mon)+1;
+		txEnv[6] = ptr->tm_mday;
+		txEnv[7] = ptr->tm_year-100;
 
 
 		switch(bNrf){
@@ -109,16 +104,12 @@ int main(){
 					printf("-----Mode  RX-----\nEsperando  Dato...\n");
 				}else{
 					bNrf = 0;
-				    printf("\nData Rady\n");
-					printf("RC:%d:%d:%d\n",rxRec[2],rxRec[1],rxRec[0]);
-					sensor=(rxRec[4]<<8) | rxRec[3];
+				    printf("\nReceive %d\n",rxRec[0]);
+					printf("RC:%d:%d:%d\n",rxRec[3],rxRec[2],rxRec[1]);
+					sensor=(rxRec[5]<<8) | rxRec[4];
 					voltajeS = sensor*3.3/1023;
 					corriente = (fnabs(voltajeS - 1.65)/0.0132)+2;
 					printf("Consumo:%.2f mA\n",corriente);
-					valueX = (rxRec[5]<<12) | (rxRec[6]<<4) | (rxRec[7]>>4);
-					valueY = (rxRec[8]<<12) | (rxRec[9]<<4) | (rxRec[10]>>4);
-					valueZ = (rxRec[11]<<12) | (rxRec[12]<<4) | (rxRec[13]>>4);
-					printf("X:%ld Y:%ld Z:%ld\n",valueX, valueY, valueZ);
 				}
 				break;
 			case 2:
