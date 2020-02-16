@@ -313,7 +313,7 @@ void RF24L01_read_payload(uint8_t *data, uint8_t length) {
   	*(data++) = aux[i+1];
   }
 
-  RF24L01_send_command(RF24L01_command_FLUSH_RX);
+  //RF24L01_send_command(RF24L01_command_FLUSH_RX);
 
 }//End Read Payload
 
@@ -326,6 +326,9 @@ uint8_t RF24L01_status(void){
 	RF24L01_reg_STATUS_content status;
 
 	status = RF24L01_get_status();
+
+	res = status.RX_P_NO;
+	printf("Data number %d\n",res);
 
 	if(status.RX_DR){
 		res = 1;

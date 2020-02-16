@@ -104,12 +104,13 @@ int main(){
 					printf("-----Mode  RX-----\nEsperando  Dato...\n");
 				}else{
 					bNrf = 0;
+					RF24L01_read_payload(rxRec, sizeof(rxRec));
 				    printf("\nReceive %d\n",rxRec[0]);
 					printf("RC:%d:%d:%d\n",rxRec[3],rxRec[2],rxRec[1]);
 					sensor=(rxRec[5]<<8) | rxRec[4];
 					voltajeS = sensor*3.3/1023;
-					corriente = (fnabs(voltajeS - 1.65)/0.0132)+2;
-					printf("Consumo:%.2f mA\n",corriente);
+					corriente = (fnabs(voltajeS - 1.65)/0.0132)+2;	
+					printf("Consumo:%.2f mA\n\n",corriente);
 				}
 				break;
 			case 2:
@@ -134,12 +135,6 @@ int main(){
 void interrupcion(){
 	// Return 1:Data Sent, 2:RX_DR, 3:MAX_RT
 	bNrf = RF24L01_status();
-
-	if(bNrf){
-		RF24L01_read_payload(rxRec, sizeof(rxRec));
-		RF24L01_clear_interrupts();
-		return;
-	}
 
 	RF24L01_clear_interrupts();
 }
