@@ -14,9 +14,9 @@
 #include <wiringPiSPI.h>
 
 /*Definimos los puertos a utilizar*/
-#define RF_CE	3
-#define RF_IRQ 	4
-#define CHANNEL 0
+#define RF_CE 22 	//3
+#define RF_IRQ 26 	//4
+#define CHANNEL 0 	//0
 
 #define RF24L01_CS_setOutput()	 	pinMode(RF_CS, OUTPUT)
 #define RF24L01_CS_setHigh() 	 	digitalWrite(RF_CS, HIGH)

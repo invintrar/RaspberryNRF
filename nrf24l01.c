@@ -24,7 +24,7 @@ void RF24L01_init(void) {
   RF24L01_CE_setLow();
 
   //SPI
-  if( wiringPiSPISetup(0, 10000000) == -1 )
+  if( wiringPiSPISetup(CHANNEL, 10000000) == -1 )
   	printf("SPI0 No se Inicia Correctamente.\n");
 
 }//End init
@@ -326,9 +326,6 @@ uint8_t RF24L01_status(void){
 	RF24L01_reg_STATUS_content status;
 
 	status = RF24L01_get_status();
-
-	res = status.RX_P_NO;
-	printf("Data number %d\n",res);
 
 	if(status.RX_DR){
 		res = 1;

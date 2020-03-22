@@ -9,8 +9,8 @@ def ByteToHex(Bytes):
 
 # Create spi object
 spi  = spidev.SpiDev()
-# open spi port 0, device (CS) 1
-spi.open(0,0)
+# open spi port 1, device (CS) 0 
+spi.open(1,0)
 spi.bits_per_word = 8
 spi.max_speed_hz = 10000000
 spi.mode = 0
